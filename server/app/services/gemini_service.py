@@ -1,11 +1,13 @@
 import os
 import json
-from openai import OpenAI
+import google.generativeai as genai
 from dotenv import load_dotenv
 
 load_dotenv()
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 def analyze_idea(title, description, target_audience, industry):
 
@@ -31,14 +33,17 @@ Return STRICT JSON in this format:
     "monetization": "...",
     "feasibility": "Low/Medium/High"
 }}
+
+IMPORTANT:
+Return only valid JSON. No explanation. No markdown.
 """
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.7
-    )
+    response = model.generate_content(prompt)
 
-    content = response.choices[0].message.content
+    content = response.text.strip()
+
+    # Remove accidental markdown formatting if Gemini adds it
+    if content.startswith("```"):
+        content = content.strip("```json").strip("```").strip()
 
     return json.loads(content)

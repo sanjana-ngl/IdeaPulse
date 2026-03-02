@@ -1,6 +1,6 @@
-from app.services.openai_service import analyze_idea
+from app.services.gemini_service import analyze_idea
 from app.services.scoring_service import calculate_score
-from app.database.db_service import save_idea_to_db
+from database.db_service import save_idea_to_db
 
 def validate_idea(data):
 
