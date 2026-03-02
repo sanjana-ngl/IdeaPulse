@@ -1,7 +1,3 @@
-from app.services.gemini_service import analyze_idea
-from app.services.scoring_service import calculate_score
-from database.db_service import save_idea_to_db
-
 def validate_idea(data):
 
     ai_result = analyze_idea(
@@ -11,26 +7,28 @@ def validate_idea(data):
         data.industry
     )
 
+    if "error" in ai_result:
+        return ai_result
+
     score = calculate_score(
-        ai_result["feasibility"],
-        len(ai_result["competitors"])
+        ai_result.get("feasibility", "Low"),
+        len(ai_result.get("competitors", []))
     )
 
     response_data = {
-        "market_summary": ai_result["market_summary"],
-        "competitors": ai_result["competitors"],
+        "market_summary": ai_result.get("market_summary"),
+        "competitors": ai_result.get("competitors", []),
         "swot": {
-            "strengths": ai_result["strengths"],
-            "weaknesses": ai_result["weaknesses"],
-            "opportunities": ai_result["opportunities"],
-            "threats": ai_result["threats"],
+            "strengths": ai_result.get("strengths"),
+            "weaknesses": ai_result.get("weaknesses"),
+            "opportunities": ai_result.get("opportunities"),
+            "threats": ai_result.get("threats"),
         },
-        "monetization": ai_result["monetization"],
-        "feasibility": ai_result["feasibility"],
+        "monetization": ai_result.get("monetization"),
+        "feasibility": ai_result.get("feasibility"),
         "validation_score": score
     }
 
-    # Save (DB teammate handles real logic)
     save_idea_to_db(response_data)
 
     return response_data

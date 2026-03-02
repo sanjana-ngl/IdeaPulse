@@ -9,6 +9,16 @@ genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 model = genai.GenerativeModel("gemini-1.5-flash")
 
+
+def clean_json_response(text: str) -> str:
+    text = text.strip()
+
+    if text.startswith("```"):
+        text = text.replace("```json", "").replace("```", "").strip()
+
+    return text
+
+
 def analyze_idea(title, description, target_audience, industry):
 
     prompt = f"""
@@ -38,12 +48,15 @@ IMPORTANT:
 Return only valid JSON. No explanation. No markdown.
 """
 
-    response = model.generate_content(prompt)
+    try:
+        response = model.generate_content(prompt)
 
-    content = response.text.strip()
+        content = clean_json_response(response.text)
 
-    # Remove accidental markdown formatting if Gemini adds it
-    if content.startswith("```"):
-        content = content.strip("```json").strip("```").strip()
+        return json.loads(content)
 
-    return json.loads(content)
+    except Exception as e:
+        return {
+            "error": "Gemini parsing failed",
+            "details": str(e)
+        }

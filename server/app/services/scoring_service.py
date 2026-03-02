@@ -2,10 +2,16 @@ def calculate_score(feasibility, competitors_count):
 
     score = 50
 
-    if feasibility.lower() == "high":
+    feasibility = feasibility.lower()
+
+    if feasibility == "high":
         score += 25
-    elif feasibility.lower() == "medium":
+    elif feasibility == "medium":
         score += 10
+    elif feasibility == "low":
+        score += 0
+    else:
+        score += 5  # unknown case safety
 
     if competitors_count <= 3:
         score += 15
