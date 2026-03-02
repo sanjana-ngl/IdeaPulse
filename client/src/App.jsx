@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion"
 import LandingPage from "./pages/LandingPage"
 import ValidatePage from "./pages/ValidatePage"
 import ResultsPage from "./pages/ResultsPage"
+import AnalyzingPage from "./pages/AnalyzingPage" // ✅ NEW IMPORT
 
 function AnimatedRoutes() {
   const location = useLocation()
@@ -20,6 +21,7 @@ function AnimatedRoutes() {
         <Routes location={location}>
           <Route path="/" element={<LandingPage />} />
           <Route path="/validate" element={<ValidatePage />} />
+          <Route path="/analyzing" element={<AnalyzingPage />} /> {/* ✅ NEW ROUTE */}
           <Route path="/results" element={<ResultsPage />} />
         </Routes>
       </motion.div>
