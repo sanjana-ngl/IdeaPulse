@@ -1,62 +1,63 @@
 from app.services.ai_service import analyze_idea
-from app.services.scoring_service import calculate_viability
-from app.database.idea_repository import save_idea
+from app.services.scenario_service import calculate_score
+from app.schemas.idea_schema import IdeaRequest
 
 
-# 🔄 Utility to normalize SWOT values (string → list)
-def ensure_list(value):
-    if isinstance(value, list):
-        return value
-    if isinstance(value, str):
-        return [value]
-    return []
+def classify_market_presence(company_type: str, brand_scale: str):
+
+    if company_type == "Public Company":
+        return "High"
+
+    if brand_scale == "Global":
+        return "High"
+
+    if brand_scale == "Regional":
+        return "Medium"
+
+    return "Low"
 
 
-def validate_idea(data):
+def validate_idea(data: IdeaRequest):
 
-    # 🔹 Step 1 — Get AI structured extraction
+    # 🔥 AI structured enrichment
     ai_result = analyze_idea(
         data.title,
         data.description,
         data.industry,
         data.subdomain,
-        data.target_audience
+        data.target_audience,
     )
 
-    # 🔹 Step 2 — Calculate structured viability score
-    viability_score, breakdown = calculate_viability(
-        data.industry,
-        ai_result.get("competitors", []),
-        ai_result.get("monetization", ""),
-        data.description
-    )
+    # 🔥 Deterministic scoring engine
+    score_data = calculate_score(ai_result)
 
-    # 🔹 Step 3 — Build standardized response object
-    response_data = {
+    # 🔥 Structured competitor classification
+    structured_competitors = []
+
+    for comp in ai_result["competitors"]:
+
+        presence = classify_market_presence(
+            comp["company_type"],
+            comp["brand_scale"]
+        )
+
+        structured_competitors.append({
+            "name": comp["name"],
+            "pricing_model": comp["pricing_model"],
+            "brand_scale": comp["brand_scale"],
+            "company_type": comp["company_type"],
+            "market_presence": presence
+        })
+
+    return {
         "idea_title": data.title,
         "industry": data.industry,
         "subdomain": data.subdomain,
         "target_audience": data.target_audience,
-
-        "market_summary": ai_result.get("market_summary", ""),
-
-        "competitors": ai_result.get("competitors", []),
-
-        "swot": {
-            "strengths": ensure_list(ai_result.get("strengths")),
-            "weaknesses": ensure_list(ai_result.get("weaknesses")),
-            "opportunities": ensure_list(ai_result.get("opportunities")),
-            "threats": ensure_list(ai_result.get("threats")),
-        },
-
-        "monetization": ai_result.get("monetization", ""),
-
-        # 🎯 New Framework Outputs
-        "validation_score": viability_score,
-        "breakdown": breakdown
+        "market_summary": ai_result["market_summary"],
+        "competitors": structured_competitors,
+        "swot": ai_result["swot"],
+        "monetization": ai_result["monetization"],
+        "validation_score": score_data["validation_score"],
+        "breakdown": score_data["breakdown"],
     }
-
-    # 🔹 Step 4 — Save to database
-    save_idea(response_data)
-
-    return response_data

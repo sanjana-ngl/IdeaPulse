@@ -1,3 +1,4 @@
+import { useLocation } from "react-router-dom"
 import {
   LineChart,
   Line,
@@ -5,171 +6,104 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
+  CartesianGrid
 } from "recharts"
-import { motion } from "framer-motion"
-
-const marketData = [
-  { month: "Jan", demand: 40 },
-  { month: "Feb", demand: 55 },
-  { month: "Mar", demand: 70 },
-  { month: "Apr", demand: 65 },
-  { month: "May", demand: 85 },
-  { month: "Jun", demand: 95 },
-]
 
 export default function ResultsPage() {
-  const score = 82
+
+  const location = useLocation()
+
+  const storedData = localStorage.getItem("ideaResult")
+  const data = location.state || (storedData ? JSON.parse(storedData) : null)
+
+  if (!data || !data.breakdown) {
+    return <div className="text-white p-10">No data found.</div>
+  }
+
+  const profileData = [
+    { name: "Market", value: data.breakdown?.market_index || 0 },
+    { name: "Competition", value: data.breakdown?.competition_index || 0 },
+    { name: "Monetization", value: data.breakdown?.monetization_index || 0 },
+    { name: "Scalability", value: data.breakdown?.scalability_index || 0 },
+    { name: "Risk", value: data.breakdown?.risk_index || 0 },
+  ]
 
   return (
-    <div className="min-h-screen bg-black text-white px-8 py-16 relative overflow-hidden">
+    <div className="min-h-screen bg-black text-white px-8 py-16">
 
-      {/* Background Glow */}
-      <div className="absolute w-[1200px] h-[1200px] bg-purple-600 rounded-full blur-[350px] opacity-10 -z-10"></div>
-
-      <h1 className="text-5xl md:text-6xl font-bold mb-12 bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+      <h1 className="text-4xl font-bold mb-10">
         Validation Dashboard
       </h1>
 
-      {/* GRID LAYOUT */}
-      <div className="grid md:grid-cols-2 gap-10">
+      <h2 className="text-2xl mb-8">
+        Final Score: <span className="text-purple-400">
+          {data.validation_score ?? 0}
+        </span>
+      </h2>
 
-        {/* 🧮 Validation Score */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-8 shadow-[0_0_40px_rgba(139,92,246,0.3)] flex flex-col items-center justify-center"
+      {/* Line Graph */}
+      <div className="mb-16">
+        <h3 className="text-xl mb-4">Business Profile Analysis</h3>
+
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={profileData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+            <XAxis dataKey="name" stroke="#aaa" />
+            <YAxis stroke="#aaa" domain={[0, 100]} />
+            <Tooltip />
+            <Line
+              type="monotone"
+              dataKey="value"
+              stroke="#a855f7"
+              strokeWidth={3}
+              dot={{ r: 6 }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Competitors */}
+      {data.competitors && (
+          <div className="mb-16">
+    <h3 className="text-xl mb-6">Competitor Comparison</h3>
+
+    <div className="grid md:grid-cols-3 gap-6">
+      {data.competitors.map((comp, index) => (
+        <div
+          key={index}
+          className="bg-white/5 border border-white/10 rounded-xl p-6 hover:scale-105 transition"
         >
-          <h2 className="text-2xl mb-6">Validation Score</h2>
+          <h4 className="text-lg font-semibold mb-3">{comp.name}</h4>
+          <p className="text-gray-400 text-sm">
+            Market Presence: <span className="text-purple-400">{comp.market_presence}</span>
+          </p>
+        </div>
+      ))}
+    </div>
+  </div>
+      )}
 
-          <div className="relative w-40 h-40">
-            <svg className="w-full h-full rotate-[-90deg]">
-              <circle
-                cx="80"
-                cy="80"
-                r="70"
-                stroke="#1f2937"
-                strokeWidth="12"
-                fill="transparent"
-              />
-              <motion.circle
-                cx="80"
-                cy="80"
-                r="70"
-                stroke="url(#gradient)"
-                strokeWidth="12"
-                fill="transparent"
-                strokeDasharray={440}
-                strokeDashoffset={440 - (440 * score) / 100}
-                strokeLinecap="round"
-                initial={{ strokeDashoffset: 440 }}
-                animate={{ strokeDashoffset: 440 - (440 * score) / 100 }}
-                transition={{ duration: 1.5 }}
-              />
-              <defs>
-                <linearGradient id="gradient">
-                  <stop offset="0%" stopColor="#3b82f6" />
-                  <stop offset="100%" stopColor="#a855f7" />
-                </linearGradient>
-              </defs>
-            </svg>
+      {/* SWOT */}
+      {data.swot && (
+        <div>
+          <h3 className="text-xl mb-8">SWOT Analysis</h3>
 
-            <div className="absolute inset-0 flex items-center justify-center text-3xl font-bold">
-              {score}%
-            </div>
-          </div>
-        </motion.div>
-
-        {/* 📈 Market Demand Chart */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-8 shadow-[0_0_40px_rgba(59,130,246,0.3)]"
-        >
-          <h2 className="text-2xl mb-6">Market Demand</h2>
-
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={marketData}>
-              <XAxis dataKey="month" stroke="#8884d8" />
-              <YAxis stroke="#8884d8" />
-              <Tooltip />
-              <Line
-                type="monotone"
-                dataKey="demand"
-                stroke="#a855f7"
-                strokeWidth={3}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </motion.div>
-
-        {/* 🆚 Competitor Cards */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="md:col-span-2 backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-8 shadow-[0_0_40px_rgba(139,92,246,0.3)]"
-        >
-          <h2 className="text-2xl mb-8">Competitor Comparison</h2>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {["Competitor A", "Competitor B", "Competitor C"].map((comp) => (
-              <div
-                key={comp}
-                className="bg-white/5 p-6 rounded-xl border border-white/10 hover:scale-105 transition-transform"
-              >
-                <h3 className="text-lg font-semibold mb-3">{comp}</h3>
-                <p className="text-gray-400 text-sm">
-                  Market Presence: Medium  
-                  <br />
-                  Pricing: Premium  
-                  <br />
-                  Strength: Brand Recognition
-                </p>
+          <div className="grid md:grid-cols-2 gap-8">
+            {["strengths", "weaknesses", "opportunities", "threats"].map((key) => (
+              <div key={key} className="bg-white/5 p-6 rounded-xl border border-white/10">
+                <h4 className="text-lg font-semibold mb-4 capitalize text-purple-400">
+                  {key}
+                </h4>
+                <ul className="list-disc ml-6 space-y-2 text-gray-300">
+                  {data.swot[key]?.map((item, index) => (
+                    <li key={index}>{item}</li>
+                  ))}
+                </ul>
               </div>
             ))}
           </div>
-        </motion.div>
-
-        {/* 📌 SWOT Analysis */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="md:col-span-2 backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-8 shadow-[0_0_40px_rgba(59,130,246,0.3)]"
-        >
-          <h2 className="text-2xl mb-8">SWOT Analysis</h2>
-
-          <div className="grid md:grid-cols-2 gap-6 text-sm">
-            <div>
-              <h3 className="text-blue-400 font-semibold mb-2">Strengths</h3>
-              <ul className="list-disc ml-6 text-gray-300">
-                <li>Strong market demand</li>
-                <li>Scalable model</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-purple-400 font-semibold mb-2">Weaknesses</h3>
-              <ul className="list-disc ml-6 text-gray-300">
-                <li>High competition</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-green-400 font-semibold mb-2">Opportunities</h3>
-              <ul className="list-disc ml-6 text-gray-300">
-                <li>Growing digital adoption</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-red-400 font-semibold mb-2">Threats</h3>
-              <ul className="list-disc ml-6 text-gray-300">
-                <li>Regulatory challenges</li>
-              </ul>
-            </div>
-          </div>
-        </motion.div>
-
-      </div>
+        </div>
+      )}
 
     </div>
   )
