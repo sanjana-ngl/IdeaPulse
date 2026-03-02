@@ -1,187 +1,106 @@
-import { useState } from "react"
-import { useNavigate } from "react-router-dom"
-
-const industries = {
-  Technology: [
-    "AI & Machine Learning",
-    "Blockchain",
-    "Cybersecurity",
-    "SaaS",
-    "Cloud Computing"
-  ],
-  EdTech: [
-    "K-12 Learning",
-    "Higher Education",
-    "Test Prep",
-    "Skill Development",
-    "Corporate Training"
-  ],
-  FinTech: [
-    "Digital Payments",
-    "Lending",
-    "Wealth Management",
-    "InsurTech",
-    "Crypto"
-  ],
-  HealthTech: [
-    "Telemedicine",
-    "Mental Health",
-    "Fitness",
-    "Medical Devices",
-    "PharmaTech"
-  ],
-  "E-Commerce": [
-    "D2C",
-    "Marketplace",
-    "Dropshipping",
-    "B2B Commerce",
-    "Subscription"
-  ]
-}
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function IdeaForm() {
-  const navigate = useNavigate()
+
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    name: "",
+    title: "",
     description: "",
     industry: "",
     subdomain: "",
-    customIndustry: "",
-    customSubdomain: ""
-  })
+    target_audience: ""
+  });
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
-    })
-  }
+    });
+  };
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    console.log(formData)
-    navigate("/analyzing")
-  }
+  const handleSubmit = async () => {
 
-  const subdomainOptions =
-    industries[formData.industry] || []
+    try {
+      // OPTIONAL: Navigate to analyzing page first
+      navigate("/analyzing");
+
+      const response = await fetch("http://127.0.0.1:8000/api/validate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(formData)
+      });
+
+      await response.json();
+
+      // After API call finishes → go to static results page
+      setTimeout(() => {
+        navigate("/results");
+      }, 1500);
+
+    } catch (error) {
+      console.error("Error:", error);
+      navigate("/results"); // fallback
+    }
+  };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8 text-white">
+    <div className="text-white space-y-6">
 
-      <h2 className="text-4xl font-bold text-center mb-8">
-        Enter Your Startup Idea 🚀
+      <h2 className="text-4xl font-bold">
+        Enter Your Startup Idea
       </h2>
 
-      <div>
-        <label className="block mb-2 text-gray-300">Idea Name</label>
-        <input
-          type="text"
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-          className="w-full p-4 rounded-xl bg-black/60 border border-blue-500/40 text-white"
-        />
-      </div>
+      <input
+        type="text"
+        name="title"
+        placeholder="Idea Name"
+        onChange={handleChange}
+        className="w-full p-4 bg-black border border-blue-500 rounded-xl"
+      />
 
-      <div>
-        <label className="block mb-2 text-gray-300">Idea Description</label>
-        <textarea
-          name="description"
-          rows="4"
-          value={formData.description}
-          onChange={handleChange}
-          className="w-full p-4 rounded-xl bg-black/60 border border-blue-500/40 text-white"
-        />
-      </div>
+      <textarea
+        name="description"
+        placeholder="Describe your idea..."
+        rows="4"
+        onChange={handleChange}
+        className="w-full p-4 bg-black border border-blue-500 rounded-xl"
+      />
 
-      <div>
-        <label className="block mb-2 text-gray-300">Industry</label>
-        <select
-          name="industry"
-          value={formData.industry}
-          onChange={(e) => {
-            handleChange(e)
-            setFormData((prev) => ({
-              ...prev,
-              subdomain: "",
-              customSubdomain: ""
-            }))
-          }}
-          className="w-full p-4 rounded-xl bg-black/60 border border-blue-500/40 text-white"
-        >
-          <option value="">Select Industry</option>
-          {Object.keys(industries).map((ind) => (
-            <option key={ind} value={ind}>{ind}</option>
-          ))}
-          <option value="Other">Other</option>
-        </select>
-      </div>
+      <input
+        type="text"
+        name="industry"
+        placeholder="Industry (e.g. HealthTech)"
+        onChange={handleChange}
+        className="w-full p-4 bg-black border border-blue-500 rounded-xl"
+      />
 
-      {formData.industry === "Other" && (
-        <div>
-          <label className="block mb-2 text-gray-300">Enter Industry</label>
-          <input
-            type="text"
-            name="customIndustry"
-            value={formData.customIndustry}
-            onChange={handleChange}
-            className="w-full p-4 rounded-xl bg-black/60 border border-blue-500/40 text-white"
-          />
-        </div>
-      )}
+      <input
+        type="text"
+        name="subdomain"
+        placeholder="Subdomain (e.g. Telemedicine)"
+        onChange={handleChange}
+        className="w-full p-4 bg-black border border-blue-500 rounded-xl"
+      />
 
-      {formData.industry && (
-        <div>
-          <label className="block mb-2 text-gray-300">Subdomain</label>
-
-          {formData.industry !== "Other" ? (
-            <select
-              name="subdomain"
-              value={formData.subdomain}
-              onChange={handleChange}
-              className="w-full p-4 rounded-xl bg-black/60 border border-blue-500/40 text-white"
-            >
-              <option value="">Select Subdomain</option>
-              {subdomainOptions.map((sub) => (
-                <option key={sub} value={sub}>{sub}</option>
-              ))}
-              <option value="Other">Other</option>
-            </select>
-          ) : (
-            <input
-              type="text"
-              name="customSubdomain"
-              value={formData.customSubdomain}
-              onChange={handleChange}
-              placeholder="Enter Subdomain"
-              className="w-full p-4 rounded-xl bg-black/60 border border-blue-500/40 text-white"
-            />
-          )}
-        </div>
-      )}
-
-      {formData.subdomain === "Other" && formData.industry !== "Other" && (
-        <div>
-          <label className="block mb-2 text-gray-300">Enter Subdomain</label>
-          <input
-            type="text"
-            name="customSubdomain"
-            value={formData.customSubdomain}
-            onChange={handleChange}
-            className="w-full p-4 rounded-xl bg-black/60 border border-blue-500/40 text-white"
-          />
-        </div>
-      )}
+      <input
+        type="text"
+        name="target_audience"
+        placeholder="Target Audience (e.g. Working Professionals)"
+        onChange={handleChange}
+        className="w-full p-4 bg-black border border-blue-500 rounded-xl"
+      />
 
       <button
-        type="submit"
-        className="w-full py-4 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 text-lg font-semibold hover:scale-105 transition-transform duration-300 shadow-[0_0_40px_rgba(139,92,246,0.6)]"
+        onClick={handleSubmit}
+        className="w-full py-4 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl"
       >
-        Analyze Idea ⚡
+        Analyze Idea
       </button>
 
-    </form>
-  )
+    </div>
+  );
 }

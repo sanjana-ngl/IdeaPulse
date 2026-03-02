@@ -14,9 +14,9 @@ export default function AboutSection() {
       </h2>
 
       <p className="text-lg md:text-xl text-gray-400 max-w-3xl leading-relaxed">
-        IdeaPulse leverages AI to evaluate market demand, competition,
-        monetization potential and feasibility — giving founders instant clarity
-        before they invest time or money.
+        IdeaPulse is an AI-powered startup validation platform designed to help founders make smarter decisions before investing time, money, and resources. 
+  By analyzing market demand, competitive landscape, monetization strategies, SWOT factors, and feasibility metrics, IdeaPulse provides instant data-driven insights. 
+  Whether you're an aspiring entrepreneur, a startup founder, or an innovation team, IdeaPulse transforms raw ideas into structured validation reports — helping you move forward with confidence and clarity.
       </p>
     </motion.div>
   )

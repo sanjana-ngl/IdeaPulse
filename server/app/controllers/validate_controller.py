@@ -1,66 +1,62 @@
-from app.database.idea_repository import save_idea
 from app.services.ai_service import analyze_idea
-from app.services.scoring_service import calculate_score
+from app.services.scoring_service import calculate_viability
+from app.database.idea_repository import save_idea
+
+
+# 🔄 Utility to normalize SWOT values (string → list)
+def ensure_list(value):
+    if isinstance(value, list):
+        return value
+    if isinstance(value, str):
+        return [value]
+    return []
 
 
 def validate_idea(data):
 
+    # 🔹 Step 1 — Get AI structured extraction
     ai_result = analyze_idea(
         data.title,
         data.description,
-        data.target_audience,
-        data.industry
+        data.industry,
+        data.subdomain,
+        data.target_audience
     )
 
-    # 🔥 Safety check if Gemini fails
-    if "error" in ai_result:
-        return {
-            "idea_id": "error",
-            "analysis": {
-                "title": data.title,
-                "description": data.description,
-                "target_audience": data.target_audience,
-                "industry": data.industry,
-                "market_summary": "AI analysis failed",
-                "competitors": [],
-                "swot": {
-                    "strengths": "",
-                    "weaknesses": "",
-                    "opportunities": "",
-                    "threats": ""
-                },
-                "monetization": "",
-                "feasibility": "Unknown",
-                "validation_score": 0
-            }
-        }
-
-    score = calculate_score(
-        ai_result["feasibility"],
-        len(ai_result["competitors"])
+    # 🔹 Step 2 — Calculate structured viability score
+    viability_score, breakdown = calculate_viability(
+        data.industry,
+        ai_result.get("competitors", []),
+        ai_result.get("monetization", ""),
+        data.description
     )
 
+    # 🔹 Step 3 — Build standardized response object
     response_data = {
-        "title": data.title,
-        "description": data.description,
-        "target_audience": data.target_audience,
+        "idea_title": data.title,
         "industry": data.industry,
-        "market_summary": ai_result["market_summary"],
-        "competitors": ai_result["competitors"],
+        "subdomain": data.subdomain,
+        "target_audience": data.target_audience,
+
+        "market_summary": ai_result.get("market_summary", ""),
+
+        "competitors": ai_result.get("competitors", []),
+
         "swot": {
-            "strengths": ai_result["strengths"],
-            "weaknesses": ai_result["weaknesses"],
-            "opportunities": ai_result["opportunities"],
-            "threats": ai_result["threats"],
+            "strengths": ensure_list(ai_result.get("strengths")),
+            "weaknesses": ensure_list(ai_result.get("weaknesses")),
+            "opportunities": ensure_list(ai_result.get("opportunities")),
+            "threats": ensure_list(ai_result.get("threats")),
         },
-        "monetization": ai_result["monetization"],
-        "feasibility": ai_result["feasibility"],
-        "validation_score": score
+
+        "monetization": ai_result.get("monetization", ""),
+
+        # 🎯 New Framework Outputs
+        "validation_score": viability_score,
+        "breakdown": breakdown
     }
 
-    idea_id = save_idea(response_data)
+    # 🔹 Step 4 — Save to database
+    save_idea(response_data)
 
-    return {
-        "idea_id": idea_id,
-        "analysis": response_data
-    }
+    return response_data

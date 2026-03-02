@@ -9,25 +9,25 @@ load_dotenv()
 api_key = os.getenv("GROQ_API_KEY")
 
 if not api_key:
-    raise ValueError("GROQ_API_KEY not found in .env file")
+    raise ValueError("GROQ_API_KEY not found")
 
 client = Groq(api_key=api_key)
 
 
-def analyze_idea(title, description, target_audience, industry):
+def analyze_idea(title, description, industry, subdomain, target_audience):
 
     prompt = f"""
 You are a startup validation expert.
 
-Analyze the following startup idea and respond ONLY in valid JSON.
+Analyze the following startup idea and return ONLY valid JSON.
 
-Startup Idea:
 Title: {title}
 Description: {description}
-Target Audience: {target_audience}
 Industry: {industry}
+Subdomain: {subdomain}
+Target Audience: {target_audience}
 
-Return JSON in this exact format:
+Return JSON in this format:
 {{
     "market_summary": "...",
     "competitors": ["...", "..."],
@@ -44,7 +44,6 @@ Return JSON in this exact format:
         response = client.chat.completions.create(
             model="llama-3.1-8b-instant",
             messages=[
-                {"role": "system", "content": "You are a startup validation expert."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.7
@@ -52,7 +51,6 @@ Return JSON in this exact format:
 
         raw_text = response.choices[0].message.content.strip()
 
-        # Remove markdown formatting if present
         raw_text = re.sub(r"```json", "", raw_text)
         raw_text = re.sub(r"```", "", raw_text)
 
