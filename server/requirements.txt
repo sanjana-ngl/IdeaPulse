@@ -4,3 +4,4 @@ pydantic
 python-dotenv
 pymongo
 google-generativeai
+gunicorn
