@@ -1,5 +1,5 @@
 from app.database.idea_repository import save_idea
-from app.services.gemini_service import analyze_idea
+from app.services.ai_service import analyze_idea
 from app.services.scoring_service import calculate_score
 
 
@@ -11,6 +11,29 @@ def validate_idea(data):
         data.target_audience,
         data.industry
     )
+
+    # 🔥 Safety check if Gemini fails
+    if "error" in ai_result:
+        return {
+            "idea_id": "error",
+            "analysis": {
+                "title": data.title,
+                "description": data.description,
+                "target_audience": data.target_audience,
+                "industry": data.industry,
+                "market_summary": "AI analysis failed",
+                "competitors": [],
+                "swot": {
+                    "strengths": "",
+                    "weaknesses": "",
+                    "opportunities": "",
+                    "threats": ""
+                },
+                "monetization": "",
+                "feasibility": "Unknown",
+                "validation_score": 0
+            }
+        }
 
     score = calculate_score(
         ai_result["feasibility"],
@@ -35,7 +58,6 @@ def validate_idea(data):
         "validation_score": score
     }
 
-    # ✅ Save to MongoDB
     idea_id = save_idea(response_data)
 
     return {

@@ -1,12 +1,11 @@
 from pymongo import MongoClient
-import os
-from dotenv import load_dotenv
 
-load_dotenv()
-
-MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017")
+# 🔥 PASTE YOUR REAL ATLAS CONNECTION STRING BELOW
+MONGO_URL = "mongodb+srv://ideapulse:Rnzb4tiN7BUxrFGy@cluster0.wm8wtju.mongodb.net/?appName=Cluster0"
 
 client = MongoClient(MONGO_URL)
+
+# Database name (you can change if you want)
 db = client["validateai_db"]
 
 def get_database():
