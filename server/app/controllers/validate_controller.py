@@ -1,6 +1,7 @@
+from app.database.idea_repository import save_idea
 from app.services.gemini_service import analyze_idea
 from app.services.scoring_service import calculate_score
-from database.db_service import save_idea_to_db
+
 
 def validate_idea(data):
 
@@ -17,6 +18,10 @@ def validate_idea(data):
     )
 
     response_data = {
+        "title": data.title,
+        "description": data.description,
+        "target_audience": data.target_audience,
+        "industry": data.industry,
         "market_summary": ai_result["market_summary"],
         "competitors": ai_result["competitors"],
         "swot": {
@@ -30,7 +35,10 @@ def validate_idea(data):
         "validation_score": score
     }
 
-    # Save (DB teammate handles real logic)
-    save_idea_to_db(response_data)
+    # ✅ Save to MongoDB
+    idea_id = save_idea(response_data)
 
-    return response_data
+    return {
+        "idea_id": idea_id,
+        "analysis": response_data
+    }
