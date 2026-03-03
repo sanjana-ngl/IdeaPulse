@@ -8,7 +8,7 @@ app = FastAPI()
 # 🔥 Allowed Origins
 origins = [
     "http://localhost:5173",  # Vite local dev
-    "https://ideapulsestartupanalyzer-ocaiu5c1i-sunnys-projects-d7978883.vercel.app/",  # 🔥 Replace with YOUR actual Vercel URL
+    "https://ideapulsestartupanalyzer-hu4b5g73p-dyanesh-js-projects.vercel.app/",  # 🔥 Replace with YOUR actual Vercel URL
 ]
 
 app.add_middleware(
