@@ -52,7 +52,7 @@ export default function IdeaForm() {
     navigate("/analyzing");
 
     try {
-      const response = await fetch("https://ideapulse-backend-zoqq.onrender.com/validate", {
+      const response = await fetch( `${import.meta.env.VITE_API_URL}/validate`,{
         method: "POST",
         headers: {
           "Content-Type": "application/json"
