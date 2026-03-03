@@ -1,22 +1,11 @@
 import os
 import json
-import google.generativeai as genai
+from google import genai
 from dotenv import load_dotenv
 
 load_dotenv()
 
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-
-model = genai.GenerativeModel("gemini-1.5-flash")
-
-
-def clean_json_response(text: str) -> str:
-    text = text.strip()
-
-    if text.startswith("```"):
-        text = text.replace("```json", "").replace("```", "").strip()
-
-    return text
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 
 def analyze_idea(title, description, target_audience, industry):
@@ -45,18 +34,24 @@ Return STRICT JSON in this format:
 }}
 
 IMPORTANT:
-Return only valid JSON. No explanation. No markdown.
+Return only valid JSON.
 """
 
     try:
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model="gemini-1.5-flash-latest",
+            contents=prompt,
+        )
 
-        content = clean_json_response(response.text)
+        raw_text = response.text.strip()
 
-        return json.loads(content)
+        if raw_text.startswith("```"):
+            raw_text = raw_text.replace("```json", "").replace("```", "").strip()
+
+        return json.loads(raw_text)
 
     except Exception as e:
         return {
-            "error": "Gemini parsing failed",
+            "error": "Gemini failed",
             "details": str(e)
         }
